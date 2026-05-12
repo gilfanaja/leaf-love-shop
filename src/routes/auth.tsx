@@ -57,13 +57,13 @@ function AuthPage() {
   };
 
   const handleGoogle = async () => {
-    const { lovable } = await import("@/integrations/lovable/index").catch(() => ({ lovable: null as never }));
-    if (!lovable) {
-      toast.error("Google sign-in not configured yet");
-      return;
+    try {
+      const mod = await import(/* @vite-ignore */ "@/integrations/lovable/index" as string);
+      const r = await mod.lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      if (r.error) toast.error("Google sign-in failed");
+    } catch {
+      toast.info("Google sign-in akan tersedia setelah dikonfigurasi.");
     }
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (r.error) toast.error("Google sign-in failed");
   };
 
   return (

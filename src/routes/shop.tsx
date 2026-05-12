@@ -61,11 +61,11 @@ function ShopPage() {
   }, [products, search.q]);
 
   const setCategory = (slug?: string) =>
-    navigate({ search: (prev) => ({ ...prev, category: slug }) });
+    navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, category: slug }) });
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate({ search: (prev) => ({ ...prev, q: q || undefined }) });
+    navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, q: q || undefined }) });
   };
 
   return (
@@ -97,7 +97,7 @@ function ShopPage() {
           <select
             value={search.sort ?? "new"}
             onChange={(e) =>
-              navigate({ search: (prev) => ({ ...prev, sort: e.target.value as "new" | "price-asc" | "price-desc" }) })
+              navigate({ search: (prev: z.infer<typeof searchSchema>) => ({ ...prev, sort: e.target.value as "new" | "price-asc" | "price-desc" }) })
             }
             className="rounded-full border border-border bg-card px-3 py-1.5 text-sm"
           >
