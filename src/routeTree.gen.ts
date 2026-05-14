@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -20,6 +21,11 @@ import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated.checkout'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated.orders.$id'
 
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShopRoute = ShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/shop': typeof ShopRouteWithChildren
+  '/wishlist': typeof WishlistRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/shop': typeof ShopRouteWithChildren
+  '/wishlist': typeof WishlistRoute
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/shop': typeof ShopRouteWithChildren
+  '/wishlist': typeof WishlistRoute
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/shop'
+    | '/wishlist'
     | '/checkout'
     | '/orders'
     | '/profile'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/shop'
+    | '/wishlist'
     | '/checkout'
     | '/orders'
     | '/profile'
@@ -135,6 +146,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/shop'
+    | '/wishlist'
     | '/_authenticated/checkout'
     | '/_authenticated/orders'
     | '/_authenticated/profile'
@@ -148,10 +160,18 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CartRoute: typeof CartRoute
   ShopRoute: typeof ShopRouteWithChildren
+  WishlistRoute: typeof WishlistRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -268,6 +288,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CartRoute: CartRoute,
   ShopRoute: ShopRouteWithChildren,
+  WishlistRoute: WishlistRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
