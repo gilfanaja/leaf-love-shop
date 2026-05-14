@@ -3,8 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatIDR, formatDate } from "@/lib/format";
 import { Button } from "@/components/ui/button";
-import { Download, ChevronLeft, Leaf } from "lucide-react";
+import { Download, ChevronLeft, Leaf, MessageCircle, Printer, Clock, CreditCard, Truck, PackageCheck, XCircle } from "lucide-react";
 import jsPDF from "jspdf";
+import { whatsappUrl } from "@/lib/shop-config";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-warning/15 text-warning-foreground border-warning/40",
@@ -13,6 +14,13 @@ const STATUS_COLORS: Record<string, string> = {
   completed: "bg-success/15 text-success border-success/40",
   cancelled: "bg-destructive/10 text-destructive border-destructive/30",
 };
+
+const TIMELINE: { key: string; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { key: "pending", label: "Order placed", icon: Clock },
+  { key: "processed", label: "Payment confirmed", icon: CreditCard },
+  { key: "shipped", label: "Shipped", icon: Truck },
+  { key: "completed", label: "Delivered", icon: PackageCheck },
+];
 
 export const Route = createFileRoute("/_authenticated/orders/$id")({
   component: OrderDetailPage,
@@ -33,10 +41,31 @@ function OrderDetailPage() {
     },
   });
 
-  if (isLoading) return <div className="container mx-auto px-4 py-20 text-center text-muted-foreground">Loading…</div>;
+  if (isLoading) {
+    return (
+      <div className="container mx-auto max-w-3xl px-4 py-10">
+        <div className="h-96 animate-pulse rounded-3xl bg-secondary" />
+      </div>
+    );
+  }
   if (!data?.order) return <div className="container mx-auto px-4 py-20 text-center">Order not found</div>;
 
   const { order, items } = data;
+  const cancelled = order.status === "cancelled";
+  const activeStep = cancelled ? -1 : TIMELINE.findIndex((t) => t.key === order.status);
+
+  const sendWhatsApp = () => {
+    const lines = [
+      `Hi GreenGrow! I'd like to follow up on my order *${order.order_number}*`,
+      ``,
+      ...items.map((it) => `• ${it.name} × ${it.qty} — ${formatIDR(Number(it.price) * it.qty)}`),
+      ``,
+      `Total: ${formatIDR(Number(order.total))}`,
+      `Payment: ${order.payment_method.toUpperCase()} (${order.payment_status})`,
+      `Status: ${order.status}`,
+    ];
+    window.open(whatsappUrl(lines.join("\n")), "_blank");
+  };
 
   const downloadInvoice = () => {
     const doc = new jsPDF();
@@ -79,7 +108,6 @@ function OrderDetailPage() {
     doc.text(`Order: ${order.status}`, 120, y + 16);
 
     y += 40;
-    // Items table header
     doc.setFillColor(240, 245, 240);
     doc.rect(left, y, 200 - 2 * left, 8, "F");
     doc.setFont("helvetica", "bold");
@@ -120,10 +148,49 @@ function OrderDetailPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-10">
-      <Link to="/orders" className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary">
+    <div className="container mx-auto max-w-3xl px-4 py-10 pb-32 md:pb-10">
+      <Link to="/orders" className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary print:hidden">
         <ChevronLeft className="h-4 w-4" /> Back to orders
       </Link>
+
+      {/* Status timeline */}
+      <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-card print:hidden">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Order status</div>
+            <div className="mt-1 font-display text-lg font-semibold capitalize">{order.status}</div>
+          </div>
+          <span className={`inline-block rounded-full border px-3 py-1 text-xs font-medium capitalize ${STATUS_COLORS[order.status] ?? ""}`}>
+            {order.status}
+          </span>
+        </div>
+
+        {cancelled ? (
+          <div className="flex items-center gap-3 rounded-xl bg-destructive/5 p-4 text-sm text-destructive">
+            <XCircle className="h-5 w-5" /> This order was cancelled.
+          </div>
+        ) : (
+          <ol className="relative grid grid-cols-4 gap-2">
+            <div className="absolute left-4 right-4 top-4 -z-0 h-0.5 bg-border" />
+            <div
+              className="absolute left-4 top-4 -z-0 h-0.5 bg-primary transition-all duration-500"
+              style={{ width: `calc((100% - 2rem) * ${Math.max(0, activeStep) / (TIMELINE.length - 1)})` }}
+            />
+            {TIMELINE.map((s, idx) => {
+              const done = idx <= activeStep;
+              const Icon = s.icon;
+              return (
+                <li key={s.key} className="relative z-10 flex flex-col items-center text-center">
+                  <span className={`grid h-9 w-9 place-items-center rounded-full border-2 transition ${done ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground"}`}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className={`mt-2 text-[11px] font-medium leading-tight ${done ? "text-foreground" : "text-muted-foreground"}`}>{s.label}</span>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </div>
 
       <div className="rounded-3xl border border-border bg-card p-8 shadow-card print:border-0 print:shadow-none">
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
@@ -132,7 +199,7 @@ function OrderDetailPage() {
               <span className="grid h-9 w-9 place-items-center rounded-full bg-hero text-primary-foreground"><Leaf className="h-4 w-4" /></span>
               <span className="font-display text-xl font-semibold">GreenGrow Store</span>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">hello@greengrow.shop</p>
+            <p className="mt-1 text-xs text-muted-foreground">hello@greengrow.shop · +62 812 0000 0000</p>
           </div>
           <div className="text-right">
             <div className="font-display text-2xl font-semibold">Invoice</div>
@@ -149,7 +216,7 @@ function OrderDetailPage() {
             <div className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{order.customer_address}</div>
           </div>
           <div>
-            <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Status</div>
+            <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Payment</div>
             <div className="mt-2 flex flex-wrap gap-2">
               <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${STATUS_COLORS[order.status] ?? ""}`}>{order.status}</span>
               <span className="inline-block rounded-full border border-border px-2.5 py-0.5 text-xs font-medium capitalize">
@@ -178,20 +245,23 @@ function OrderDetailPage() {
         <div className="ml-auto mt-6 max-w-xs space-y-1 text-sm">
           <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatIDR(Number(order.subtotal))}</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{formatIDR(Number(order.shipping))}</span></div>
-          <div className="flex justify-between border-t border-border pt-2 font-display text-lg font-semibold"><span>Total</span><span>{formatIDR(Number(order.total))}</span></div>
+          <div className="flex justify-between border-t border-border pt-2 font-display text-lg font-semibold"><span>Total</span><span className="text-primary">{formatIDR(Number(order.total))}</span></div>
         </div>
 
         {order.notes && (
           <div className="mt-6 rounded-xl bg-secondary/60 p-4 text-sm">
             <div className="font-medium">Notes</div>
-            <div className="mt-1 text-muted-foreground">{order.notes}</div>
+            <div className="mt-1 whitespace-pre-line text-muted-foreground">{order.notes}</div>
           </div>
         )}
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2 print:hidden">
-        <Button onClick={downloadInvoice}><Download className="mr-2 h-4 w-4" /> Download PDF</Button>
-        <Button variant="outline" onClick={() => window.print()}>Print</Button>
+        <Button onClick={downloadInvoice} className="shadow-soft"><Download className="mr-2 h-4 w-4" /> Download PDF</Button>
+        <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print</Button>
+        <Button variant="outline" onClick={sendWhatsApp} className="text-success-foreground">
+          <MessageCircle className="mr-2 h-4 w-4" /> Chat seller on WhatsApp
+        </Button>
       </div>
     </div>
   );
