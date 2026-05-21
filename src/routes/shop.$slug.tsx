@@ -21,7 +21,10 @@ function ProductPage() {
   const { slug } = Route.useParams();
   const add = useCart((s) => s.add);
   const toggleWish = useWishlist((s) => s.toggle);
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [qty, setQty] = useState(1);
+  const [startingChat, setStartingChat] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", slug],
