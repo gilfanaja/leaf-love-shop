@@ -32,6 +32,9 @@ export const Route = createFileRoute("/_authenticated/orders/$id")({
 
 function OrderDetailPage() {
   const { id } = Route.useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [startingChat, setStartingChat] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["order", id],
     queryFn: async () => {
