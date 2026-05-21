@@ -1,8 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Leaf, ShoppingCart, User as UserIcon, Package, Heart, Home, Store } from "lucide-react";
+import { Leaf, ShoppingCart, User as UserIcon, Package, Heart, Home, Store, MessageCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
@@ -10,6 +12,19 @@ export function SiteHeader() {
   const wishCount = useWishlist((s) => s.items.length);
   const { user } = useAuth();
   const path = useRouterState({ select: (r) => r.location.pathname });
+
+  const { data: unreadChat = 0 } = useQuery({
+    queryKey: ["chat-unread", user?.id],
+    enabled: !!user,
+    refetchInterval: 30000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("chat_threads")
+        .select("unread_for_user")
+        .gt("unread_for_user", 0);
+      return (data ?? []).reduce((s, t) => s + (t.unread_for_user || 0), 0);
+    },
+  });
 
   const isActive = (to: string) => (to === "/" ? path === "/" : path === to || path.startsWith(to + "/"));
 
@@ -42,10 +57,23 @@ export function SiteHeader() {
           {navLink("/shop", "Shop")}
           {navLink("/wishlist", "Wishlist")}
           {navLink("/orders", "Orders")}
+          {navLink("/chat", "Chat")}
           {navLink("/profile", "Profile")}
         </nav>
 
         <div className="flex items-center gap-1.5">
+          {user && (
+            <Button asChild variant="ghost" size="icon" className="relative hidden sm:inline-flex">
+              <Link to="/chat" aria-label="Chat">
+                <MessageCircle className="h-5 w-5" />
+                {unreadChat > 0 && (
+                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                    {unreadChat}
+                  </span>
+                )}
+              </Link>
+            </Button>
+          )}
           <Button asChild variant="ghost" size="icon" className="relative hidden sm:inline-flex">
             <Link to="/wishlist" aria-label="Wishlist">
               <Heart className="h-5 w-5" />

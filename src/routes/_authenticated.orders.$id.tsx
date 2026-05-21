@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatIDR, formatDate } from "@/lib/format";
@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Download, ChevronLeft, Leaf, MessageCircle, Printer, Clock, CreditCard, Truck, PackageCheck, XCircle } from "lucide-react";
 import jsPDF from "jspdf";
 import { whatsappUrl } from "@/lib/shop-config";
+import { startThread } from "@/lib/chat";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-warning/15 text-warning-foreground border-warning/40",
@@ -28,6 +32,9 @@ export const Route = createFileRoute("/_authenticated/orders/$id")({
 
 function OrderDetailPage() {
   const { id } = Route.useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [startingChat, setStartingChat] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["order", id],
     queryFn: async () => {
@@ -259,6 +266,30 @@ function OrderDetailPage() {
       <div className="mt-6 flex flex-wrap gap-2 print:hidden">
         <Button onClick={downloadInvoice} className="shadow-soft"><Download className="mr-2 h-4 w-4" /> Download PDF</Button>
         <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print</Button>
+        <Button
+          variant="outline"
+          disabled={startingChat}
+          onClick={async () => {
+            if (!user) return;
+            setStartingChat(true);
+            try {
+              const tid = await startThread({
+                userId: user.id,
+                subject: `Diskusi Pesanan ${order.order_number}`,
+                orderId: order.id,
+                initialMessage: `Halo, saya ingin diskusi tentang pesanan ${order.order_number}.`,
+              });
+              toast.success("Diskusi pesanan dibuka");
+              navigate({ to: "/chat/$id", params: { id: tid } });
+            } catch (e: unknown) {
+              toast.error(e instanceof Error ? e.message : "Gagal memulai chat");
+            } finally {
+              setStartingChat(false);
+            }
+          }}
+        >
+          <MessageCircle className="mr-2 h-4 w-4" /> Diskusi Pesanan
+        </Button>
         <Button variant="outline" onClick={sendWhatsApp} className="text-success-foreground">
           <MessageCircle className="mr-2 h-4 w-4" /> Chat seller on WhatsApp
         </Button>
