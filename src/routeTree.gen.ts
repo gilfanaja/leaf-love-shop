@@ -19,7 +19,9 @@ import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated.profile'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated.orders'
 import { Route as AuthenticatedCheckoutRouteImport } from './routes/_authenticated.checkout'
+import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated.chat'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated.orders.$id'
+import { Route as AuthenticatedChatIdRouteImport } from './routes/_authenticated.chat.$id'
 
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
@@ -70,10 +72,20 @@ const AuthenticatedCheckoutRoute = AuthenticatedCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedOrdersIdRoute = AuthenticatedOrdersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => AuthenticatedOrdersRoute,
+} as any)
+const AuthenticatedChatIdRoute = AuthenticatedChatIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedChatRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -82,10 +94,12 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/shop': typeof ShopRouteWithChildren
   '/wishlist': typeof WishlistRoute
+  '/chat': typeof AuthenticatedChatRouteWithChildren
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/shop/$slug': typeof ShopSlugRoute
+  '/chat/$id': typeof AuthenticatedChatIdRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
 }
 export interface FileRoutesByTo {
@@ -94,10 +108,12 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/shop': typeof ShopRouteWithChildren
   '/wishlist': typeof WishlistRoute
+  '/chat': typeof AuthenticatedChatRouteWithChildren
   '/checkout': typeof AuthenticatedCheckoutRoute
   '/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/profile': typeof AuthenticatedProfileRoute
   '/shop/$slug': typeof ShopSlugRoute
+  '/chat/$id': typeof AuthenticatedChatIdRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
 }
 export interface FileRoutesById {
@@ -108,10 +124,12 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/shop': typeof ShopRouteWithChildren
   '/wishlist': typeof WishlistRoute
+  '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/checkout': typeof AuthenticatedCheckoutRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRouteWithChildren
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/shop/$slug': typeof ShopSlugRoute
+  '/_authenticated/chat/$id': typeof AuthenticatedChatIdRoute
   '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
 }
 export interface FileRouteTypes {
@@ -122,10 +140,12 @@ export interface FileRouteTypes {
     | '/cart'
     | '/shop'
     | '/wishlist'
+    | '/chat'
     | '/checkout'
     | '/orders'
     | '/profile'
     | '/shop/$slug'
+    | '/chat/$id'
     | '/orders/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -134,10 +154,12 @@ export interface FileRouteTypes {
     | '/cart'
     | '/shop'
     | '/wishlist'
+    | '/chat'
     | '/checkout'
     | '/orders'
     | '/profile'
     | '/shop/$slug'
+    | '/chat/$id'
     | '/orders/$id'
   id:
     | '__root__'
@@ -147,10 +169,12 @@ export interface FileRouteTypes {
     | '/cart'
     | '/shop'
     | '/wishlist'
+    | '/_authenticated/chat'
     | '/_authenticated/checkout'
     | '/_authenticated/orders'
     | '/_authenticated/profile'
     | '/shop/$slug'
+    | '/_authenticated/chat/$id'
     | '/_authenticated/orders/$id'
   fileRoutesById: FileRoutesById
 }
@@ -235,6 +259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCheckoutRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/chat': {
+      id: '/_authenticated/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof AuthenticatedChatRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/orders/$id': {
       id: '/_authenticated/orders/$id'
       path: '/$id'
@@ -242,8 +273,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersIdRouteImport
       parentRoute: typeof AuthenticatedOrdersRoute
     }
+    '/_authenticated/chat/$id': {
+      id: '/_authenticated/chat/$id'
+      path: '/$id'
+      fullPath: '/chat/$id'
+      preLoaderRoute: typeof AuthenticatedChatIdRouteImport
+      parentRoute: typeof AuthenticatedChatRoute
+    }
   }
 }
+
+interface AuthenticatedChatRouteChildren {
+  AuthenticatedChatIdRoute: typeof AuthenticatedChatIdRoute
+}
+
+const AuthenticatedChatRouteChildren: AuthenticatedChatRouteChildren = {
+  AuthenticatedChatIdRoute: AuthenticatedChatIdRoute,
+}
+
+const AuthenticatedChatRouteWithChildren =
+  AuthenticatedChatRoute._addFileChildren(AuthenticatedChatRouteChildren)
 
 interface AuthenticatedOrdersRouteChildren {
   AuthenticatedOrdersIdRoute: typeof AuthenticatedOrdersIdRoute
@@ -257,12 +306,14 @@ const AuthenticatedOrdersRouteWithChildren =
   AuthenticatedOrdersRoute._addFileChildren(AuthenticatedOrdersRouteChildren)
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedCheckoutRoute: typeof AuthenticatedCheckoutRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRouteWithChildren
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedCheckoutRoute: AuthenticatedCheckoutRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRouteWithChildren,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
@@ -293,3 +344,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
