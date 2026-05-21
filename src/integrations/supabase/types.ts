@@ -35,6 +35,80 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          sender: Database["public"]["Enums"]["chat_sender"]
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          sender: Database["public"]["Enums"]["chat_sender"]
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          sender?: Database["public"]["Enums"]["chat_sender"]
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_threads: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          order_id: string | null
+          product_id: string | null
+          subject: string | null
+          unread_for_admin: number
+          unread_for_user: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          order_id?: string | null
+          product_id?: string | null
+          subject?: string | null
+          unread_for_admin?: number
+          unread_for_user?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          order_id?: string | null
+          product_id?: string | null
+          subject?: string | null
+          unread_for_admin?: number
+          unread_for_user?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -248,6 +322,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "customer"
+      chat_sender: "customer" | "admin"
       order_status:
         | "pending"
         | "processed"
@@ -384,6 +459,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
+      chat_sender: ["customer", "admin"],
       order_status: [
         "pending",
         "processed",
