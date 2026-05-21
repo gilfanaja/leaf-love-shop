@@ -57,10 +57,23 @@ export function SiteHeader() {
           {navLink("/shop", "Shop")}
           {navLink("/wishlist", "Wishlist")}
           {navLink("/orders", "Orders")}
+          {navLink("/chat", "Chat")}
           {navLink("/profile", "Profile")}
         </nav>
 
         <div className="flex items-center gap-1.5">
+          {user && (
+            <Button asChild variant="ghost" size="icon" className="relative hidden sm:inline-flex">
+              <Link to="/chat" aria-label="Chat">
+                <MessageCircle className="h-5 w-5" />
+                {unreadChat > 0 && (
+                  <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                    {unreadChat}
+                  </span>
+                )}
+              </Link>
+            </Button>
+          )}
           <Button asChild variant="ghost" size="icon" className="relative hidden sm:inline-flex">
             <Link to="/wishlist" aria-label="Wishlist">
               <Heart className="h-5 w-5" />
