@@ -266,6 +266,30 @@ function OrderDetailPage() {
       <div className="mt-6 flex flex-wrap gap-2 print:hidden">
         <Button onClick={downloadInvoice} className="shadow-soft"><Download className="mr-2 h-4 w-4" /> Download PDF</Button>
         <Button variant="outline" onClick={() => window.print()}><Printer className="mr-2 h-4 w-4" /> Print</Button>
+        <Button
+          variant="outline"
+          disabled={startingChat}
+          onClick={async () => {
+            if (!user) return;
+            setStartingChat(true);
+            try {
+              const tid = await startThread({
+                userId: user.id,
+                subject: `Diskusi Pesanan ${order.order_number}`,
+                orderId: order.id,
+                initialMessage: `Halo, saya ingin diskusi tentang pesanan ${order.order_number}.`,
+              });
+              toast.success("Diskusi pesanan dibuka");
+              navigate({ to: "/chat/$id", params: { id: tid } });
+            } catch (e: unknown) {
+              toast.error(e instanceof Error ? e.message : "Gagal memulai chat");
+            } finally {
+              setStartingChat(false);
+            }
+          }}
+        >
+          <MessageCircle className="mr-2 h-4 w-4" /> Diskusi Pesanan
+        </Button>
         <Button variant="outline" onClick={sendWhatsApp} className="text-success-foreground">
           <MessageCircle className="mr-2 h-4 w-4" /> Chat seller on WhatsApp
         </Button>
