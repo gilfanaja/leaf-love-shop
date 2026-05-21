@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatIDR, formatDate } from "@/lib/format";
@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Download, ChevronLeft, Leaf, MessageCircle, Printer, Clock, CreditCard, Truck, PackageCheck, XCircle } from "lucide-react";
 import jsPDF from "jspdf";
 import { whatsappUrl } from "@/lib/shop-config";
+import { startThread } from "@/lib/chat";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-warning/15 text-warning-foreground border-warning/40",
