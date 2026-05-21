@@ -1,14 +1,17 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
+import { useAuth } from "@/hooks/use-auth";
 import { formatIDR } from "@/lib/format";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Minus, Plus, ChevronLeft, ShoppingCart, Heart, Truck, ShieldCheck, Leaf, Star } from "lucide-react";
+import { Minus, Plus, ChevronLeft, ShoppingCart, Heart, Truck, ShieldCheck, Leaf, Star, MessageCircle } from "lucide-react";
+import { startThread } from "@/lib/chat";
+import { whatsappUrl } from "@/lib/shop-config";
 
 export const Route = createFileRoute("/shop/$slug")({
   component: ProductPage,
