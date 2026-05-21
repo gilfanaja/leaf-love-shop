@@ -59,11 +59,10 @@ function AuthPage() {
 
   const handleGoogle = async () => {
     try {
-      const mod = await import(/* @vite-ignore */ "@/integrations/lovable/index" as string);
-      const r = await mod.lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-      if (r.error) toast.error("Google sign-in failed");
-    } catch {
-      toast.info("Google sign-in akan tersedia setelah dikonfigurasi.");
+      const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      if (r.error) toast.error("Google sign-in gagal. Coba lagi.");
+    } catch (err) {
+      toast.error("Google sign-in tidak tersedia.");
     }
   };
 
