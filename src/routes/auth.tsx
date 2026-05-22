@@ -25,6 +25,7 @@ function AuthPage() {
   const search = Route.useSearch();
   const [loading, setLoading] = useState(false);
 
+
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
